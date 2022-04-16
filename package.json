@@ -1,0 +1,19 @@
+{
+  "name": "30fps_to_60fps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "cli-progress": "^3.10.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.3",
+    "express-ws": "^5.0.2",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+}
