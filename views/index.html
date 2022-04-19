@@ -1,6 +1,10 @@
 <html>
 
 <head>
+    <!-- Required meta tags always come first -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <!-- Google Fonts -->
@@ -16,12 +20,13 @@
 <body>
     <center class="container p-5 text-center w-100">
         <div class="d-grid gap-2 col-6 mx-auto">
-            <button id="start" class="btn btn-primary" >Start</button>
-            <button id="download" disabled class="btn btn-primary" >Download</button>
-            <progress id="ProgressBar" max="100" value="0"></progress>
+            <button id="start" class="btn btn-primary">Start</button>
+            <button id="download" disabled class="btn btn-primary">Download</button>
+            <progress id="ProgressBar" max="100" value="0" class="w-100"></progress>
 
             <div class="progress" style="height: 20px;">
-                <div id="bar2" class="progress-bar bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                <div id="bar2" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100">0%</div>
             </div>
 
         </div>
@@ -30,51 +35,60 @@
 
 
 <script>
-    // Start
+    // Start button
     $("#start").click(function () {
-        $.ajax({url:"/start"})
-        TimerProgressBar()
+        $.ajax({ url: "/start" })
+        // TimerProgressBar()
     });
-    
-    // download
+
+    // download button
     $("#download").click(function () {
         window.open("/download", "_blank")
     });
 
-    // ProgressBar Status interval
-    const TimerProgressBar = setInterval(function () { AjaxProgressBar(); }, 1000);
+    // Websocket
+    wsConnect();
+    function wsConnect() {
+        console.log('🔄 Connecting...')
+        // WS Settings
+        const protocol = location.protocol.includes('https') ? 'wss://' : 'ws://'
+        const ws = new WebSocket(protocol + window.location.host + '/progress');
 
-    function AjaxProgressBar() {
-        $.ajax({
-            url: "/status",
-            type: "GET",
-            success: function (response, textStatus, jqXHR) {
-                // console.log(response);
-                
-                // Update ProgressBar
-                $('#ProgressBar').val(response.ProgressBar)
-                $('#bar2').width(`${response.ProgressBar}%`)
-                $('#bar2').text(`${response.ProgressBar}%`)
 
-                
-                // Stop updater
-                // if (response.ProgressBar == 100) { clearTimeout(TimerProgressBar) }; 
-                
-                if (response.ProgressBar == 100) { 
-                    document.getElementById('download').disabled = false
-                    // document.getElementById('download').className = "btn btn-success"
-                 } else {
-                    document.getElementById('download').disabled = true
-                 }
-                 
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-            }
+        ws.addEventListener('open', function (event) {
+            console.log('🔑 WS Connected.')
+            ws.send('Hi Server!');
+            // ProgressBar Status interval
+            // const TimerProgressBar = setInterval(function () { ws.send('') }, 1000);
         });
 
+        ws.addEventListener('message', function (e) {
+            // console.log('💬 Message Recieved.')
+            const res = JSON.parse(e.data);
+            // console.log(res);
+            UpdateBars(res);
+        });
+
+        ws.addEventListener('close', function (e) {
+            console.log(`😞 WS Connection lost.`);
+            // keep try to connect
+            wsConnect();
+        });
+
+    };
+
+    function UpdateBars(res) {
+        // Update ProgressBar
+        $('#ProgressBar').val(res.ProgressBar)
+        $('#bar2').width(`${res.ProgressBar}%`)
+        $('#bar2').text(`${res.ProgressBar}%`)
+
+        if (res.ProgressBar == 100) {
+            $('#download').prop("disabled", false);
+            // document.getElementById('download').className = "btn btn-success"
+        } else {
+            $('#download').prop("disabled", true);
+        }
     };
 </script>
 
