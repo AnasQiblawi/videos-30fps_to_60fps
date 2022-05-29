@@ -15,9 +15,10 @@ const expressWs = require('express-ws')(app);
 
 // Setting Server --------------------------------------------------------------
 const port = process.env.PORT || 80;
-app.listen(port);
+app.listen(port, () => { 
+  console.log(`Server is Running on port : ${port}`);
+});
 app.set('view engine', 'ejs');
-console.log(`Server is Running on port : ${port}`);
 
 
 
